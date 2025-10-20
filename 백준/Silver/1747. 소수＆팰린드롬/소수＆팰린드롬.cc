@@ -1,7 +1,7 @@
 /*
 오.. 여섯 자릿수 자연수 중 팰린드롬인 소수가 없네
 
-N >= 98689일 때 답: 1,003,001
+N > 98689일 때 답: 1,003,001
 */
 
 #include <iostream>
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
     int N;
     std::cin >> N;
 
-    if (N >= 98689) {
+    if (N > 98689) {
         std::cout << 1003001;
         return 0;
     }

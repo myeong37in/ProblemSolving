@@ -8,6 +8,12 @@ dp[i][j][k]: (i, j)에서 약수가 k일 때 졌는지
 이동, 약수 감소로 갈 수 있는 상태 중 패배 상태가 있다면 현재는 필승 상태
 
 우측 아래부터 거꾸로 보면 되겠군
+
+약수의 수가 |D|라면 코드가 O(|D| * N^2 * K^2)이네. TLE 최적화 필요
+
+경로 상에 벽이 있는지를 O(K)가 아닌 O(1)에 판정할 수 있나? 있다. 벽의 개수 누적 합을 쓰면 됨
+
+O(|D| * N^2 * K)가 통과되는지 보자
 */
 
 #include <iostream>
@@ -36,34 +42,50 @@ int main(int argc, char* argv[]){
     int N, K;
     std::cin >> N >> K;
 
-    std::vector<std::vector<int>> board(N, std::vector<int> (N));
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            std::cin >> board[i][j];
+    std::vector<std::vector<int>> board(N + 1, std::vector<int> (N + 1));
+    for (int r = 1; r <= N; r++) {
+        for (int c = 1; c <= N; c++) {
+            std::cin >> board[r][c];
+        }
+    }
+
+    // 각 행, 열에 대해 벽 개수의 누적합
+    std::vector<std::vector<int>> row_walls_psum(N + 1, std::vector<int> (N + 1)), col_walls_psum(N + 1, std::vector<int> (N + 1));
+    for (int c = 1; c <= N; c++) {
+        for (int r = 1; r <= N; r++) {
+            row_walls_psum[r][c] = row_walls_psum[r - 1][c] + board[r][c];
+        }
+    }
+    for (int r = 1; r <= N; r++) {
+        for (int c = 1; c <= N; c++) {
+            col_walls_psum[r][c] = col_walls_psum[r][c - 1] + board[r][c];
         }
     }
 
     GetDivisors(K);
 
     int L = divisors.size();
-    std::vector<std::vector<std::vector<int>>> dp(N, std::vector<std::vector<int>> (N, std::vector<int> (L)));
+    std::vector<std::vector<std::vector<int>>> dp(N + 1, std::vector<std::vector<int>> (N + 1, std::vector<int> (L)));
     for (int k = 0; k < L; k++) {
         int cur_K = divisors[k]; // 현재 k보다 인덱스가 작은 divisors 요소가 이동할 수 있는(더 작은) 약수 후보들
-        for (int sr = N - 1; sr >= 0; sr--) {
-            for (int sc = N - 1; sc >= 0; sc--) {
+        for (int sr = N; sr >= 1; sr--) {
+            for (int sc = N; sc >= 1; sc--) {
                 if (board[sr][sc]) {
                     continue;
                 }
 
                 bool win = false;
                 // 행 이동
-                for (int dist = 1; dist <= cur_K && sr + dist < N; dist++) {
+                for (int dist = 1; dist <= cur_K && sr + dist <= N; dist++) {
                     bool wall_exist = false;
-                    for (int r = sr + 1; r <= sr + dist; r++) {
-                        if (board[r][sc]) {
-                            wall_exist = true;
-                            break;
-                        }
+                    // for (int r = sr + 1; r <= sr + dist; r++) {
+                    //     if (board[r][sc]) {
+                    //         wall_exist = true;
+                    //         break;
+                    //     }
+                    // }
+                    if (row_walls_psum[sr + dist][sc] - row_walls_psum[sr][sc] > 0) {
+                        wall_exist = true;
                     }
 
                     if (wall_exist) { // 벽 있으면 못 감
@@ -78,13 +100,16 @@ int main(int argc, char* argv[]){
 
                 if (!win) {
                     // 열 이동
-                    for (int dist = 1; dist <= cur_K && sc + dist < N; dist++) {
+                    for (int dist = 1; dist <= cur_K && sc + dist <= N; dist++) {
                         bool wall_exist = false;
-                        for (int c = sc + 1; c <= sc + dist; c++) {
-                            if (board[sr][c]) {
-                                wall_exist = true;
-                                break;
-                            }
+                        // for (int c = sc + 1; c <= sc + dist; c++) {
+                        //     if (board[sr][c]) {
+                        //         wall_exist = true;
+                        //         break;
+                        //     }
+                        // }
+                        if (col_walls_psum[sr][sc + dist] - col_walls_psum[sr][sc] > 0) {
+                            wall_exist = true;
                         }
 
                         if (wall_exist) {
@@ -113,7 +138,7 @@ int main(int argc, char* argv[]){
         }
     }
 
-    std::cout << dp[0][0][L - 1];
+    std::cout << dp[1][1][L - 1];
 
     return 0;
 }

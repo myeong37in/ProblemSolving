@@ -149,7 +149,7 @@ static void Dijkstra(int start) {
         for (const auto& e : graph[cur]) {
             int next = e.to;
             long long nd = e.dist + dist;
-            if (nd < 0) {
+            if (e.dist < 0) {
                 neg_cycle = true;
                 nd *= -1; // 양수로 바꿔서 계산. 이 시점에서 거리값은 무의미함
             }

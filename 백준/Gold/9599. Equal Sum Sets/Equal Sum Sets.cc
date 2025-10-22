@@ -1,5 +1,7 @@
 /*
-완전 탐색으로 10!이긴 함. DP가 될 것 같은데 방법이 떠오르지가 않네..
+완전 탐색으로 테케 수 * C(20, 10)이긴 함. DP가 될 것 같은데 방법이 떠오르지가 않네..
+
+가지치기나 합시다
 */
 
 #include <iostream>
@@ -12,6 +14,18 @@ static void backtrack(int prev, int sum, int depth) {
         if (sum == s) {
             cnt++;
         }
+        return;
+    }
+
+    // prev + 1에서 prev + (k - depth)까지 더하는 것이 최소 합
+    int min_sum = (k - depth) * prev + (k - depth) * (k - depth + 1) / 2;
+    if (sum + min_sum > s) {
+        return;
+    }
+
+    // n - (k - depth) + 1에서 n까지 더하는 것이 최대 합
+    int max_sum = n * (n + 1) / 2 - (n - (k - depth)) * (n - (k - depth) + 1) / 2;
+    if (sum + max_sum < s) {
         return;
     }
 
@@ -31,7 +45,7 @@ int main(int argc, char* argv[]){
             break;
         }
 
-        if (n < k || (n * (n + 1) / 2) < s) { //수의 개수, 최소합 조건
+        if (n < k || (n * (n + 1) / 2) < s) { // 수의 개수, 최소합 조건
             std::cout << 0 << "\n";
             continue;
         }

@@ -1,7 +1,5 @@
 /*
-입력 형식이 좀 귀찮긴 하군요
-
-각 사람이 각 도시에 도달하는 시간을 구해서 모든 사람이 도달하는 도시가 없으면 -1, 있으면 최솟값을 구하면 되겠다
+BFS도 최단 경로를 보장하긴 하지만 Dijkstra로 써야 불필요한 탐색이 줄어들겠네
 */
 
 #include <iostream>
@@ -53,24 +51,32 @@ int main(int argc, char* argv[]){
             }
         }
 
+        auto cmp = [](const State& a, const State& b) {
+            return a.dist > b.dist;
+        };
+
         constexpr int INF = 2e9;
         std::vector<std::vector<int>> dists(P + 1, std::vector<int> (N + 1, INF));
         for (int p = 1; p <= P; p++) {
             const auto& [from, unit_time] = friends[p];
             
-            // BFS
-            std::queue<State> q;
-            q.push({from, 0});
+            // Dijkstra
+            std::priority_queue<State, std::vector<State>, decltype(cmp)> pq(cmp);
+            pq.push({from, 0});
             dists[p][from] = 0;
 
-            while (!q.empty()) {
-                auto [cur, dist] = q.front();
-                q.pop();
+            while (!pq.empty()) {
+                auto [cur, dist] = pq.top();
+                pq.pop();
+
+                if (dists[p][cur] != dist) {
+                    continue;
+                }
 
                 for (const auto& [next, nd] : graph[cur]) {
                     if (dists[p][next] > dist + nd * unit_time) {
                         dists[p][next] = dist + nd * unit_time;
-                        q.push({next, dist + nd * unit_time});
+                        pq.push({next, dist + nd * unit_time});
                     }
                 }
             }

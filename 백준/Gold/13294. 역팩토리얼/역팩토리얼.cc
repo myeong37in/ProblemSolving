@@ -51,11 +51,11 @@ int main(int argc, char* argv[]){
     int mult = 2;
     // 오차 고려
     while (true) {
-        sum += std::log(mult);
+        sum += logl(mult);
         if (sum < lo) {
             mult++;
         }
-        else if (sum > lo) { // 넘었으면 이전 값
+        else if (sum >= hi) { // 넘었으면 이전 값
             std::cout << mult - 1;
             break;
         }

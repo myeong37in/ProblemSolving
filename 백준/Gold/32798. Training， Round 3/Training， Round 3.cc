@@ -49,8 +49,8 @@ r ≡ x * y^(-1) (mod MOD)
 #include <iostream>
 #include <vector>
 
-static __int128_t ModPow(long long base, long long mod, long long exp) {
-    __int128_t res = 1;
+static long long ModPow(long long base, long long mod, long long exp) {
+    long long res = 1;
     while (exp) {
         if (exp & 1) {
             res = (res * base) % mod;
@@ -60,17 +60,6 @@ static __int128_t ModPow(long long base, long long mod, long long exp) {
     }
 
     return res;
-}
-
-std::vector<__int128_t> fact;
-
-static void ModFact(long long n, long long mod) {
-    __int128_t res = 1;
-    fact[0] = fact[1] = 1;
-    for (int i = 2; i <= n; i++) {
-        res = (res * i) % mod;
-        fact[i] = res;
-    }
 }
 
 int main(int argc, char* argv[]) {
@@ -89,14 +78,26 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    fact.resize(n + 1);
-
     constexpr long long MOD = 998244353;
-    ModFact(n, MOD);
 
-    __int128_t ans;
-    ans = (static_cast<__int128_t>(1) - ModPow(fact[n - p], MOD, k) * ModPow(fact[n - k * p], MOD, MOD - 2) * ModPow(fact[n], MOD, MOD - k)) % MOD + MOD;
-    std::cout << static_cast<long long>(ans);
+    long long fact_n_sub_kp = 1;
+    for (int i = 2; i <= n - k * p; i++) {
+        fact_n_sub_kp = (fact_n_sub_kp * i) % MOD;
+    }
+    
+    long long fact_n_sub_p = fact_n_sub_kp;
+    for (int i = n - k * p + 1; i <= n - p; i++) {
+        fact_n_sub_p = (fact_n_sub_p * i) % MOD;
+    }
+
+    long long fact_n = fact_n_sub_p;
+    for (int i = n - p + 1; i <= n; i++) {
+        fact_n = (fact_n * i) % MOD;
+    }
+
+    long long ans;
+    ans = ((1LL - ((ModPow(fact_n_sub_p, MOD, k) * ModPow(fact_n_sub_kp, MOD, MOD - 2)) % MOD) * ModPow(fact_n, MOD, MOD - k)) % MOD + MOD) % MOD;
+    std::cout << ans;
     
     return 0;
 }

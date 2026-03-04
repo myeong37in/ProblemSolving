@@ -2,6 +2,10 @@
 실시간 처리가 아님 
 
 시작에서 +1, 끝에서 -1, 누적 합
+
+86,399 * 100,000 
+
+int 넘네..
 */
 
 #include <iostream>
@@ -19,7 +23,8 @@ int main(int argc, char* argv[]) {
     
 
     constexpr int cnt = 24 * 60 * 60;
-    std::vector<int> diffs(cnt), psum(cnt);
+    std::vector<int> diffs(cnt);
+    std::vector<long long> psum(cnt);
 
     int n;
     std::cin >> n;

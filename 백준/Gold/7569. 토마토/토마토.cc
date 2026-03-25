@@ -1,105 +1,107 @@
-#include "iostream"
-#include "vector"
-#include "queue"
+/*
+7576번의 연장
+높이가 추가되어 3차원 vector로 푼다.
+*/
 
-#define ABS(X) ((X) >= 0 ? (X) : -(X))
+#include <iostream>
+#include <vector>
+#include <queue>
 
-using namespace std;
+std::vector<std::vector<std::vector<int>>> vec;
+std::vector<std::vector<std::vector<bool>>> visited;
+std::vector<std::vector<std::vector<int>>> time;
 
-vector<vector<int> > P;
-vector<int> days;
-int N,M,H,front;
-int v[101][101][101];
+std::vector<int> dr = {-1, 1, 0, 0, 0, 0};
+std::vector<int> dc = {0, 0, -1, 1, 0, 0};
+std::vector<int> dh = {0, 0, 0, 0, -1, 1};
 
-queue<int> bfs;
+void bfs(std::vector<std::pair<std::pair<int, int>, int>> starts) {
+    std::queue<std::pair<std::pair<int, int>, int>> q;
 
-int Hash(int i,int j,int k){
-    return (i-1)*M*N + (j-1)*N + k;
+    for (const auto& p : starts) {
+        visited[p.first.first][p.first.second][p.second] = true;
+        time[p.first.first][p.first.second][p.second] = 0;
+        q.push(p);
+    }
+
+    while (!q.empty()) {
+        int current_row = q.front().first.first;
+        int current_col = q.front().first.second;
+        int current_height = q.front().second;
+        q.pop();
+
+        for (int i = 0; i < 6; i++) {
+            int next_row = current_row + dr[i];
+            int next_col = current_col + dc[i];
+            int next_height = current_height + dh[i];
+
+            if (next_row >= 0 && next_row < vec.size() &&
+                next_col >= 0 && next_col < vec[0].size() &&
+                next_height >= 0 && next_height < vec[0][0].size() &&
+                !visited[next_row][next_col][next_height] &&
+                vec[next_row][next_col][next_height] != -1) {
+
+                visited[next_row][next_col][next_height] = true;
+                q.push({{next_row, next_col}, next_height});
+                time[next_row][next_col][next_height] = time[current_row][current_col][current_height] + 1;
+            }
+        }
+    }
 }
 
-void Connect(int i1,int j1,int k1,int i2,int j2,int k2){
-    if(i1 <= 0 || i2 <= 0 || j1 <= 0 || j2 <= 0 || k1 <= 0 || k2 <= 0 || i1 > H || i2 > H || j1 > M || j2 > M || k1 > N || k2 > N) return;
-    if(v[i1][j1][k1] == -1 || v[i2][j2][k2] == -1) return;
-    
-    int h1 = Hash(i1,j1,k1),h2 = Hash(i2,j2,k2);
-    // std::cout << "connect: " << h1 << " " << h2 << "\n";
-    P[h1].emplace_back(h2);
-}
+int main(int argc, char* argv[]) {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
 
-void ConnectNeighbor(int i,int j,int k){
-    for(int dx = -1;dx <= 1;++dx){
-        for(int dy = -1;dy <= 1;++dy){
-            for(int dz = -1;dz <= 1;++dz){
-                if(ABS(dx) + ABS(dy) + ABS(dz) == 1){
-                    Connect(i,j,k,i+dz,j+dy,k+dx);
+    int N, M, H;
+    std::cin >> M >> N >> H;
+
+    vec.assign(N, std::vector<std::vector<int>> (M, std::vector<int> (H)));
+    time.assign(N, std::vector<std::vector<int>> (M, std::vector<int> (H)));
+    visited.assign(N, std::vector<std::vector<bool>> (M, std::vector<bool> (H)));
+    std::vector<std::pair<std::pair<int, int>, int>> starts;
+    for (int k = 0; k < H; k++) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                std::cin >> vec[i][j][k];
+
+                if (vec[i][j][k] == 1) {
+                    starts.emplace_back(std::pair<std::pair<int, int>, int> {{i, j}, k});
                 }
             }
         }
     }
-}
 
-int m = -1;
+    bfs(starts);
 
-int main(){
-    ios::sync_with_stdio(false);
-    cin.tie(NULL);
-    cout.tie(NULL);
-  
-    cin >> N >> M >> H;
-    P.resize(N*M*H+1);
-    days.resize(N*M*H+1);
-    for(int i=1;i<=H;++i){
-        for(int j=1;j<=M;++j){
-            for(int k=1;k<=N;++k){
-                cin >> v[i][j][k];
-            }
-        }
-    }
-
-    // std::cout << "board\n";
-    // for (int i = 1; i <= H; i++) {
-    //     for (int j = 1; j <= M; j++) {
-    //         for (int k = 1; k <= N; k++) {
-    //             std::cout << v[i][j][k] << " ";
-    //         }
-    //         std::cout << "\n";
-    //     }
-    //     std::cout << "\n";
-    // }
-
-    for(int i=1;i<=H;++i){
-        for(int j=1;j<=M;++j){
-            for(int k=1;k<=N;++k){
-                ConnectNeighbor(i,j,k);
-                if(v[i][j][k] == 1){
-                    bfs.push(Hash(i,j,k));
-                    days[Hash(i,j,k)] = 0;
+    bool is_possible = true;
+    int max_time = 0;
+    for (int k = 0; k < H; k++) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                if (vec[i][j][k] != -1 && !visited[i][j][k]) {
+                    is_possible = false;
+                    break;
                 }
-                else if(!v[i][j][k]) days[Hash(i,j,k)] = -1;
-                else days[Hash(i,j,k)] = -2;
+                if (time[i][j][k] > max_time) {
+                    max_time = time[i][j][k];
+                }
             }
-        }
-    }
-    while(!bfs.empty()){
-        front = bfs.front();
-        // std::cout << "bfs node: " << front << "\n";
-        bfs.pop();
-        for(int _v : P[front]){
-            // std::cout << "nxt: " << _v << "\n";
-            if(days[_v] == -1) {
-                days[_v] = days[front] + 1;
-                bfs.push(_v);
-            }
-        }
-    }
-    for(int i=1;i<=N*M*H;++i){
-        if(days[i] != -2){
-            if(days[i] == -1){
-                m = -1;
+            if (!is_possible) {
                 break;
             }
-            m = max<int>(m,days[i]);
+        }
+        if (!is_possible) {
+            break;
         }
     }
-    cout << m;
+
+    if (is_possible) {
+        std::cout << max_time;
+    }
+    else {
+        std::cout << -1;
+    }
+
+    return 0;
 }

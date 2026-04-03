@@ -24,9 +24,15 @@ int len;
 
 int ans = 0;
 
+int memo[14][14][2][2][2];
+
 static int backtrack(int pos, int sum, bool prev1, bool has13, bool tight) {
     if (pos == len) {
         return (sum == 13 && has13);
+    }
+
+    if (memo[pos][sum][prev1][has13][tight]) {
+        return memo[pos][sum][prev1][has13][tight];
     }
 
     int ret = 0;
@@ -44,6 +50,8 @@ static int backtrack(int pos, int sum, bool prev1, bool has13, bool tight) {
 
         ret += backtrack(pos + 1, sum + i, new_prev1, new_has13, new_tight);
     }
+
+    memo[pos][sum][prev1][has13][tight] = ret;
 
     return ret;
 }
